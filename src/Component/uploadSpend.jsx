@@ -4,13 +4,13 @@ import { UploadOutlined } from "@ant-design/icons";
 import { db, storage } from "../firebase";
 import { addDoc, collection, Timestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import moment from "moment";
 
 const { Option } = Select;
 
 const UploadSpend = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
+  const [fileList, setFileList] = useState([]);
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -19,30 +19,33 @@ const UploadSpend = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      // 如果有图片，上传到 Firebase Storage
-      if (values.image) {
-        const imageRef = ref(storage, `spendItem/${values.image.file.name}`);
-        await uploadBytes(imageRef, values.image.file);
-        const downloadURL = await getDownloadURL(imageRef);
-        values.image = downloadURL;
-      } else {
-        delete values.image;
-      }
-      if (!values.description) {
-        delete values.description;
-      }
+
+      // 上传所有图片并获取它们的 URL
+      const uploadImagePromises = fileList.map(async (file) => {
+        const imageRef = ref(storage, `spendItem/${file.name}`);
+        await uploadBytes(imageRef, file.originFileObj);
+        return getDownloadURL(imageRef);
+      });
+
+      // 等待所有图片上传完成
+      const imageUrls = await Promise.all(uploadImagePromises);
+
       const firestoreDate = values.date
         ? Timestamp.fromDate(values.date.toDate())
         : null;
 
+      values.image = imageUrls;
       console.log(values);
-      //   添加数据到 Firestore
+      // 添加数据到 Firestore，包括图片 URLs
       await addDoc(collection(db, "transactions"), {
         ...values,
         date: firestoreDate,
+        // images: imageUrls, // 存储所有图片的 URLs
       });
+
       setIsModalOpen(false);
       form.resetFields();
+      setFileList([]);
     } catch (error) {
       console.log("Error uploading data:", error);
     }
@@ -50,6 +53,9 @@ const UploadSpend = () => {
 
   const handleCancel = () => {
     setIsModalOpen(false);
+  };
+  const handleUploadChange = ({ fileList }) => {
+    setFileList(fileList);
   };
 
   return (
@@ -91,7 +97,12 @@ const UploadSpend = () => {
             <Input.TextArea />
           </Form.Item>
           <Form.Item name="image" label="Upload Image">
-            <Upload beforeUpload={() => false} listType="picture">
+            <Upload
+              beforeUpload={() => false}
+              listType="picture"
+              multiple={true}
+              onChange={handleUploadChange}
+            >
               <Button icon={<UploadOutlined />}>
                 Click to upload (optional)
               </Button>

@@ -1,13 +1,17 @@
-// Spend.js
 import React, { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
-import { Card, Tag, Space, Table } from "antd";
+import { Card, Tag, Space, Table, Button, Modal, Carousel } from "antd";
 import moment from "moment";
-// import "./Spend.css"; // 假设你有一个 CSS 文件来添加样式
 
 const Spend = () => {
   const [groupedTransactions, setGroupedTransactions] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentRecord, setCurrentRecord] = useState({});
+  const showModal = (record) => {
+    setCurrentRecord(record);
+    setIsModalVisible(true);
+  };
   const columns = [
     {
       title: "Name",
@@ -45,8 +49,9 @@ const Spend = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          {record.description && <span>{record.description}</span>}
-          {record.image && <a href={record.image}>image</a>}
+          {(record.description || record.image) && (
+            <Button onClick={() => showModal(record)}>View Details</Button>
+          )}
         </Space>
       ),
     },
@@ -73,7 +78,7 @@ const Spend = () => {
         }
 
         transactionsByDate[dateString].records.push(data);
-        transactionsByDate[dateString].totalAmount += parseFloat(data.price); // 假设 price 字段存储金额
+        transactionsByDate[dateString].totalAmount += parseFloat(data.price);
       });
 
       setGroupedTransactions(transactionsByDate);
@@ -82,6 +87,13 @@ const Spend = () => {
     fetchTransactions();
   }, []);
 
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
   return (
     <div>
       {Object.entries(groupedTransactions).map(
@@ -97,6 +109,31 @@ const Spend = () => {
           </Card>
         )
       )}
+      <Modal
+        title="Transaction Details"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Close
+          </Button>,
+        ]}
+      >
+        {currentRecord.image && (
+          <Carousel dotPosition="top">
+            {currentRecord.image.map((item) => (
+              <img
+                key={item}
+                src={item}
+                alt="transaction"
+                style={{ width: "100%" }}
+              />
+            ))}
+          </Carousel>
+        )}
+        {currentRecord.description && <p>{currentRecord.description}</p>}
+      </Modal>
     </div>
   );
 };
