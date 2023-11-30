@@ -62,7 +62,7 @@ const UploadSpend = () => {
   return (
     <>
       <Button type="primary" onClick={showModal}>
-        Add Item
+        Add SpendItem
       </Button>
       <Modal
         title="Add New Item"
