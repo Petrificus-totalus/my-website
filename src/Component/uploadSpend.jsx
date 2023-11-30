@@ -36,6 +36,7 @@ const UploadSpend = () => {
 
       values.image = imageUrls;
       console.log(values);
+      if (!values.description) delete values.description;
       // 添加数据到 Firestore，包括图片 URLs
       await addDoc(collection(db, "transactions"), {
         ...values,
@@ -91,6 +92,8 @@ const UploadSpend = () => {
               <Option value="food">Food</Option>
               <Option value="clean">Clean</Option>
               <Option value="play">Play</Option>
+              <Option value="xin">Xin</Option>
+              <Option value="other">Other</Option>
             </Select>
           </Form.Item>
           <Form.Item name="description" label="Description">

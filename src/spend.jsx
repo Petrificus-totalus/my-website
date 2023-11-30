@@ -49,7 +49,7 @@ const Spend = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          {(record.description || record.image) && (
+          {(record.description || record.image.length > 0) && (
             <Button onClick={() => showModal(record)}>View Details</Button>
           )}
         </Space>
@@ -110,7 +110,6 @@ const Spend = () => {
         )
       )}
       <Modal
-        title="Transaction Details"
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
