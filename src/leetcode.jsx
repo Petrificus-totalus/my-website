@@ -1,10 +1,15 @@
-import { Button, Modal, Form, Input, Select } from "antd";
-import React, { useState } from "react";
+import { Button, Modal, Form, Input, Select, List } from "antd";
+import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import { db } from "./firebase";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 
+import hljs from "highlight.js";
 import "react-quill/dist/quill.snow.css";
+import "highlight.js/styles/default.css";
+import MdEditor from "react-markdown-editor-lite";
+import MarkdownIt from "markdown-it";
+import "react-markdown-editor-lite/lib/index.css";
 
 const { Option } = Select;
 
@@ -12,7 +17,21 @@ export default function Leetcode() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const [quillValue, setQuillValue] = useState("");
+  const [isModalOpen1, setIsModalOpen1] = useState(false);
+  const [selectedMarkdown, setSelectedMarkdown] = useState("");
+
+  // const [quillValue, setQuillValue] = useState("");
+  const [markdown, setMarkdown] = useState("");
+  const mdParser = new MarkdownIt({
+    highlight: function (str, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          return hljs.highlight(lang, str, true).value;
+        } catch (__) {}
+      }
+      return ""; // 使用自定义的样式
+    },
+  });
 
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -20,21 +39,65 @@ export default function Leetcode() {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      values.quillValue = quillValue;
+      // values.quillValue = quillValue;
       console.log(values);
-      await addDoc(collection(db, "leetcode"), values);
+      await addDoc(collection(db, "leetcode"), {
+        ...values,
+        markdown,
+      });
 
       setIsModalOpen(false);
       form.resetFields();
+      setMarkdown("");
     } catch (error) {
       console.log("Error uploading data:", error);
     }
+  };
+  const handleEditorChange = ({ html, text }) => {
+    setMarkdown(text);
+  };
+
+  // useEffect(() => {
+  //   hljs.configure({
+  //     // 可选配置
+  //     languages: ["javascript", "ruby", "python"],
+  //   });
+  // }, []);
+  // const modules = {
+  //   syntax: true,
+  //   toolbar: [
+  //     // ... 其他工具栏选项
+  //     ["code-block"], // 加入代码块按钮
+  //   ],
+  // };
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const querySnapshot = await getDocs(collection(db, "leetcode"));
+      const docs = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setData(docs);
+    };
+
+    fetchData();
+  }, []);
+  const showModal = (markdown) => {
+    setSelectedMarkdown(markdown);
+    setIsModalOpen1(true);
+  };
+
+  const handleCancel1 = () => {
+    setIsModalOpen1(false);
   };
   return (
     <div>
       <Button onClick={() => setIsModalOpen(true)}>Add solution</Button>
       <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-        <Form form={form} style={{ display: "flex" }}>
+        <Form form={form}>
           <Form.Item name="num">
             <Input
               type="number"
@@ -56,9 +119,53 @@ export default function Leetcode() {
               <Option value="backtracking">Backtracking</Option>
             </Select>
           </Form.Item>
+          <Form.Item>
+            <MdEditor
+              style={{ height: "300px" }}
+              value={markdown}
+              renderHTML={(text) => mdParser.render(text)}
+              onChange={handleEditorChange}
+            />
+          </Form.Item>
         </Form>
 
-        <ReactQuill theme="snow" value={quillValue} onChange={setQuillValue} />
+        {/* <ReactQuill
+          theme="snow"
+          value={quillValue}
+          onChange={setQuillValue}
+          modules={modules}
+        /> */}
+      </Modal>
+
+      <List
+        itemLayout="horizontal"
+        dataSource={data}
+        renderItem={(item) => (
+          <List.Item
+            actions={[
+              <Button onClick={() => showModal(item.markdown)}>Detail</Button>,
+            ]}
+          >
+            <List.Item.Meta
+              title={`${item.num} - ${item.difficulty} - ${item.tags.join(
+                ", "
+              )}`}
+            />
+          </List.Item>
+        )}
+      />
+      <Modal
+        open={isModalOpen1}
+        onCancel={handleCancel1}
+        footer={null}
+        width={720}
+        className="modal-content"
+      >
+        <div
+          dangerouslySetInnerHTML={{
+            __html: mdParser.render(selectedMarkdown),
+          }}
+        />
       </Modal>
     </div>
   );
