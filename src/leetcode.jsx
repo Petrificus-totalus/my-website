@@ -1,11 +1,9 @@
 import { Button, Modal, Form, Input, Select, List } from "antd";
 import React, { useState, useEffect } from "react";
-import ReactQuill from "react-quill";
 import { db } from "./firebase";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 
 import hljs from "highlight.js";
-import "react-quill/dist/quill.snow.css";
 import "highlight.js/styles/default.css";
 import MdEditor from "react-markdown-editor-lite";
 import MarkdownIt from "markdown-it";
@@ -19,8 +17,6 @@ export default function Leetcode() {
 
   const [isModalOpen1, setIsModalOpen1] = useState(false);
   const [selectedMarkdown, setSelectedMarkdown] = useState("");
-
-  // const [quillValue, setQuillValue] = useState("");
   const [markdown, setMarkdown] = useState("");
   const mdParser = new MarkdownIt({
     highlight: function (str, lang) {
@@ -39,7 +35,6 @@ export default function Leetcode() {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      // values.quillValue = quillValue;
       console.log(values);
       await addDoc(collection(db, "leetcode"), {
         ...values,
@@ -56,20 +51,6 @@ export default function Leetcode() {
   const handleEditorChange = ({ html, text }) => {
     setMarkdown(text);
   };
-
-  // useEffect(() => {
-  //   hljs.configure({
-  //     // 可选配置
-  //     languages: ["javascript", "ruby", "python"],
-  //   });
-  // }, []);
-  // const modules = {
-  //   syntax: true,
-  //   toolbar: [
-  //     // ... 其他工具栏选项
-  //     ["code-block"], // 加入代码块按钮
-  //   ],
-  // };
 
   const [data, setData] = useState([]);
 
@@ -128,13 +109,6 @@ export default function Leetcode() {
             />
           </Form.Item>
         </Form>
-
-        {/* <ReactQuill
-          theme="snow"
-          value={quillValue}
-          onChange={setQuillValue}
-          modules={modules}
-        /> */}
       </Modal>
 
       <List
