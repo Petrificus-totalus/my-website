@@ -16,6 +16,7 @@ import Home from "./spend";
 import Chart from "./chart";
 import Leetcode from "./leetcode";
 import UploadSpend from "./Component/uploadSpend";
+import H5c3 from "./h5c3";
 
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
@@ -48,6 +49,9 @@ const App = () => {
             <SubMenu key="learn" icon={<MenuFoldOutlined />} title="Learn">
               <Menu.Item key="leetcode">
                 <Link to="/learn_leetcode">leetcode</Link>
+              </Menu.Item>
+              <Menu.Item key="h5c3">
+                <Link to="/learn_h5c3">h5c3</Link>
               </Menu.Item>
             </SubMenu>
           </Menu>
@@ -87,6 +91,7 @@ const App = () => {
               <Route path="/account_spend" element={<Home />} />
               <Route path="/account_chart" element={<Chart />} />
               <Route path="/learn_leetcode" element={<Leetcode />} />
+              <Route path="/learn_h5c3" element={<H5c3 />} />
             </Routes>
           </Content>
         </Layout>
