@@ -14,7 +14,7 @@ import {
 } from "@ant-design/icons";
 import Home from "./spend";
 import Chart from "./chart";
-import Leetcode from "./leetcode";
+import Algorithm from "./algorithm";
 import UploadSpend from "./Component/uploadSpend";
 import H5c3 from "./h5c3";
 
@@ -47,8 +47,8 @@ const App = () => {
               </Menu.Item>
             </SubMenu>
             <SubMenu key="learn" icon={<MenuFoldOutlined />} title="Learn">
-              <Menu.Item key="leetcode">
-                <Link to="/learn_leetcode">leetcode</Link>
+              <Menu.Item key="algorithm">
+                <Link to="/learn_algorithm">algorithm</Link>
               </Menu.Item>
               <Menu.Item key="h5c3">
                 <Link to="/learn_h5c3">h5c3</Link>
@@ -90,7 +90,7 @@ const App = () => {
               />
               <Route path="/account_spend" element={<Home />} />
               <Route path="/account_chart" element={<Chart />} />
-              <Route path="/learn_leetcode" element={<Leetcode />} />
+              <Route path="/learn_algorithm" element={<Algorithm />} />
               <Route path="/learn_h5c3" element={<H5c3 />} />
             </Routes>
           </Content>
