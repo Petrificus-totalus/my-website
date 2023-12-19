@@ -3,65 +3,28 @@ import React, { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 
-import hljs from "highlight.js";
-import "highlight.js/styles/default.css";
 import MdEditor from "react-markdown-editor-lite";
-import MarkdownIt from "markdown-it";
 import "react-markdown-editor-lite/lib/index.css";
-
+import useMarkdownEditor from "./Hooks/markdownEditor";
+import { tagsOptions } from "./constant";
 const { Option } = Select;
-
-const options = [
-  {
-    value: "dp",
-    label: "Dp",
-  },
-  {
-    value: "leetcode",
-    label: "Leetcode",
-  },
-  {
-    value: "tree",
-    label: "Tree",
-  },
-  {
-    value: "linkedlist",
-    label: "Linkedlist",
-  },
-  {
-    value: "backtracking",
-    label: "Backtracking",
-  },
-];
 
 export default function Leetcode() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const [isModalOpen1, setIsModalOpen1] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedSearchTags, setSelectedSearchTags] = useState([]);
 
-  const [selectedMarkdown, setSelectedMarkdown] = useState("");
-  const [markdown, setMarkdown] = useState("");
-  const mdParser = new MarkdownIt({
-    highlight: function (str, lang) {
-      if (lang && hljs.getLanguage(lang)) {
-        try {
-          return hljs.highlight(lang, str, true).value;
-        } catch (__) {}
-      }
-      return ""; // 使用自定义的样式
-    },
-  });
+  const { markdown, setMarkdown, mdParser, handleEditorChange } =
+    useMarkdownEditor();
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
+  const [detailMarkdown, setDetailMarkdown] = useState("");
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      console.log(values);
       await addDoc(collection(db, "algorithm"), {
         ...values,
         markdown,
@@ -73,9 +36,6 @@ export default function Leetcode() {
     } catch (error) {
       console.log("Error uploading data:", error);
     }
-  };
-  const handleEditorChange = ({ html, text }) => {
-    setMarkdown(text);
   };
 
   const [data, setData] = useState([]);
@@ -93,19 +53,10 @@ export default function Leetcode() {
     fetchData();
   }, []);
   const showModal = (markdown) => {
-    setSelectedMarkdown(markdown);
-    setIsModalOpen1(true);
+    setDetailMarkdown(markdown);
+    setIsDetailModalOpen(true);
   };
 
-  const handleCancel1 = () => {
-    setIsModalOpen1(false);
-  };
-  const handleTagsChange = (tags) => {
-    setSelectedTags(tags); // 更新 tags state
-  };
-  const handleSearchSelect = (tags) => {
-    setSelectedSearchTags(tags);
-  };
   const fetchItemsWithTagsContainingLe = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "algorithm"));
@@ -124,7 +75,6 @@ export default function Leetcode() {
     <div>
       <Row gutter={16}>
         <Button onClick={() => setIsModalOpen(true)}>Add solution</Button>
-
         <Select
           mode="multiple"
           allowClear
@@ -134,22 +84,32 @@ export default function Leetcode() {
           }}
           placeholder="Please select"
           defaultValue={[]}
-          onChange={handleSearchSelect}
-          options={options}
+          onChange={(tags) => {
+            setSelectedSearchTags(tags);
+          }}
+          options={tagsOptions}
         />
 
         <Button onClick={fetchItemsWithTagsContainingLe} type="primary">
           Search
         </Button>
       </Row>
-      <Modal open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+      <Modal
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={() => {
+          setIsModalOpen(false);
+        }}
+      >
         <Form form={form}>
           <Form.Item name="tags">
             <Select
               placeholder="Select Tags"
               mode="multiple"
-              onChange={handleTagsChange}
-              options={options}
+              onChange={(tags) => {
+                setSelectedTags(tags);
+              }}
+              options={tagsOptions}
             />
           </Form.Item>
           <Form.Item
@@ -225,15 +185,17 @@ export default function Leetcode() {
         }}
       />
       <Modal
-        open={isModalOpen1}
-        onCancel={handleCancel1}
+        open={isDetailModalOpen}
+        onCancel={() => {
+          setIsDetailModalOpen(false);
+        }}
         footer={null}
         width={720}
         className="modal-content"
       >
         <div
           dangerouslySetInnerHTML={{
-            __html: mdParser.render(selectedMarkdown),
+            __html: mdParser.render(detailMarkdown),
           }}
         />
       </Modal>
