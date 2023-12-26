@@ -73,7 +73,7 @@ export default function Leetcode() {
 
   return (
     <div>
-      <Row gutter={16}>
+      <Row gutter={16} style={{ marginBottom: "10px" }}>
         <Button onClick={() => setIsModalOpen(true)}>Add solution</Button>
         <Select
           mode="multiple"
@@ -170,11 +170,8 @@ export default function Leetcode() {
             : item.desc;
           return (
             <List.Item
-              actions={[
-                <Button onClick={() => showModal(item.markdown)}>
-                  Detail
-                </Button>,
-              ]}
+              onClick={() => showModal(item.markdown)}
+              className="custom-list-item"
             >
               {item.tags.map((i, index) => (
                 <Tag key={index}>{i}</Tag>

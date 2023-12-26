@@ -16,3 +16,8 @@ code {
   max-width: 100%;
   height: auto;
 }
+
+.custom-list-item:hover {
+  cursor: pointer;
+  background-color: #f0f0f0; /* 或你选择的任何颜色 */
+}

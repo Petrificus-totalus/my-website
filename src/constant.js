@@ -19,6 +19,14 @@ const tagsOptions = [
     value: "backtracking",
     label: "Backtracking",
   },
+  {
+    value: "hash",
+    label: "Hash",
+  },
+  {
+    value: "recursion",
+    label: "Recursion",
+  },
 ];
 
 export { tagsOptions };
